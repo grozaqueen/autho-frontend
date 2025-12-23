@@ -1,0 +1,24 @@
+server {
+  listen 80;
+  server_name _;
+
+  # SPA
+  location / {
+    root /usr/share/nginx/html;
+    try_files $uri /index.html;
+  }
+
+  # API proxy (один origin => cookie работает проще)
+  location /api/ {
+    proxy_pass ${API_UPSTREAM};
+    proxy_http_version 1.1;
+
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # если бэк ставит cookie с Path=/, оставляем как есть
+    proxy_cookie_path / /;
+  }
+}
